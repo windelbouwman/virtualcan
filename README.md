@@ -1,8 +1,17 @@
 
+# Virtual CAN bus
 
-# Zero-M-can
+Virtual [CAN bus](https://en.wikipedia.org/wiki/CAN_bus). Send CAN messages over a virtual can bus.
 
-Can bus over zeromq sockets. Send messages over a virtual can bus.
+# Use case
+
+A virtual can bus can be useful during development of a CAN based system.
+
+# Roadmap
+
+- C++ implementation of TCP client
+- Rust implementation of TCP client/server
+- C# implementation of TCP client
 
 # Design
 
@@ -16,4 +25,3 @@ API:
    - Create a new client name. Returns the client name.
 - send_message(client: str, id: int, extended: bool, data: list[int]) -> int
    - Send a message on the bus for the given client. Given are an id, extended marker and data.
-
