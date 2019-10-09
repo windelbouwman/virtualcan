@@ -3,6 +3,7 @@
 
 import argparse
 import logging
+import time
 import asyncio
 from .can_message import CanMessage
 
@@ -20,9 +21,18 @@ def tcp_can_client():
     async def task():
         client = TcpClient()
         await client.connect()
-        for x in range(1000):
+        count = 25000
+        t1 = time.time()
+        for x in range(count):
             can_message = CanMessage(1337 + x, False, bytes([1, 0xF2, 3, 0xCA, 0xFE]))
             await client.send_message(can_message)
+        t2 = time.time()
+        time_delta = t2 - t1
+        msg_per_second = count / time_delta
+        print(f"Transmitted {msg_per_second} messages / second")
+        # msg = await client.recv_message()
+        # print('Message!', msg)
+        await client.disconnect()
 
     asyncio.run(task())
 

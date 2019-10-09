@@ -13,6 +13,13 @@ class CanMessage:
     def __repr__(self):
         return f"Can message id={self.id} extended={self.extended} data={self.data}"
 
+    def __eq__(self, other):
+        return (self.id, self.extended, self.data) == (
+            other.id,
+            other.extended,
+            other.data,
+        )
+
     def to_json(self):
         return {
             "id": int(self.id),

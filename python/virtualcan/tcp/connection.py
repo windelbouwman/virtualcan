@@ -16,10 +16,15 @@ class Connection:
         self._reader = reader
         self._writer = writer
 
+    async def close(self):
+        """ Close this connection. """
+        self._writer.close()
+        await self._writer.wait_closed()
+
     async def send_message(self, data):
         data_len = len(data)
         header_data = struct.pack(self._FMT, data_len)
-        self.logger.debug(f"Sending {data_len} bytes")
+        # self.logger.debug(f"Sending {data_len} bytes")
         self._writer.write(header_data)
         self._writer.write(data)
         await self._writer.drain()
@@ -27,6 +32,6 @@ class Connection:
     async def recv_packet(self):
         header_data = await self._reader.readexactly(struct.calcsize(self._FMT))
         data_len, = struct.unpack(self._FMT, header_data)
-        self.logger.debug(f"Receiving {data_len} bytes")
+        # self.logger.debug(f"Receiving {data_len} bytes")
         data = await self._reader.readexactly(data_len)
         return data
