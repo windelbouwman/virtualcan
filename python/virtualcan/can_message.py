@@ -1,5 +1,6 @@
 """ Can message class.
 """
+import struct
 import json
 import binascii
 
@@ -34,14 +35,23 @@ class CanMessage:
         data = binascii.unhexlify(json_data["bindata"])
         return cls(id, extended, data)
 
+    _CAN_FMT = '>IBB8s'
+    _CAN_FLAGS_EXTENDED = 1
+
     def to_bytes(self):
-        json_data = self.to_json()
-        json_text = json.dumps(json_data)
-        bindata = json_text.encode("ascii")
+        """ Serialize this can message to some binary format. """
+        flags = 0
+        if self.extended:
+            flags |= self._CAN_FLAGS_EXTENDED
+        
+        data_len = len(self.data)
+        bindata = struct.pack(self._CAN_FMT, self.id, flags, data_len, self.data)
         return bindata
 
     @classmethod
     def from_bytes(cls, bindata):
-        json_text = bindata.decode("ascii")
-        json_data = json.loads(json_text)
-        return cls.from_json(json_data)
+        """ Create a can message from some binary data. """
+        can_id, flags, data_len, data = struct.unpack(cls._CAN_FMT, bindata)
+        extended = bool(flags & cls._CAN_FLAGS_EXTENDED)
+        data = data[:data_len]
+        return cls(can_id, extended, data)

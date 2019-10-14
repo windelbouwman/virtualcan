@@ -1,4 +1,6 @@
 
+[![Build Status](https://travis-ci.org/windelbouwman/virtualcan.svg?branch=master)](https://travis-ci.org/windelbouwman/virtualcan)
+
 # Virtual CAN bus
 
 Virtual [CAN bus](https://en.wikipedia.org/wiki/CAN_bus). Send CAN messages over a virtual can bus.

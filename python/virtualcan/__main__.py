@@ -6,8 +6,6 @@ $ python -m virtualcan
 
 import logging
 import argparse
-from .cli import zmq_can_server, zmq_client, zmq_client_dump
-from .cli import tcp_can_server, tcp_can_client, tcp_client_dump
 
 
 if __name__ == "__main__":
@@ -22,6 +20,8 @@ if __name__ == "__main__":
     use_zmq = False
 
     if use_zmq:
+        from .cli.zmq import zmq_can_server, zmq_client, zmq_client_dump
+
         if args.server:
             zmq_can_server()
         elif args.client:
@@ -29,6 +29,7 @@ if __name__ == "__main__":
         else:
             zmq_client_dump()
     else:
+        from .cli.tcp import tcp_can_server, tcp_can_client, tcp_client_dump
         if args.server:
             tcp_can_server()
         elif args.client:

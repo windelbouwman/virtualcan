@@ -1,10 +1,12 @@
 import asyncio
+import logging
 from .connection import Connection
 
 
 class TcpServer:
     """ Central TCP server for CAN messages!
     """
+    logger = logging.getLogger('tcp-server')
 
     def __init__(self):
         self._peers = []
@@ -16,6 +18,7 @@ class TcpServer:
             await server.serve_forever()
 
     async def handle_peer(self, reader, writer):
+        self.logger.info("New connection!")
         connection = Connection(reader, writer)
         peer = Peer(connection)
         peer.start()
