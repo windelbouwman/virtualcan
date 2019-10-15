@@ -14,8 +14,20 @@ class TcpServer:
     async def run(self):
         port = 8888
         server = await asyncio.start_server(self.handle_peer, "127.0.0.1", port)
+        self._broadcast_tx_queue = asyncio.Queue()
+        self._broadcast_tx_task_handle = asyncio.create_task(self._broadcast_tx_task_func())
+
         async with server:
             await server.serve_forever()
+
+    async def _broadcast_tx_task_func(self):
+        """ Take CAN messages from a broadcast queue and send them to all peers.
+        """
+        while True:
+            pkt = await self._broadcast_tx_queue.get()
+            for remote in self._peers:
+                await remote.send_message(pkt)
+            self._broadcast_tx_queue.task_done()
 
     async def handle_peer(self, reader, writer):
         self.logger.info("New connection!")
@@ -27,9 +39,8 @@ class TcpServer:
             while True:
                 pkt = await connection.recv_packet()
                 print("PKT!", pkt)
-                for remote in self._peers:
-                    if remote is not peer:
-                        await remote.send_message(pkt)
+                await self._broadcast_tx_queue.put(pkt)
+
         finally:
             self._peers.remove(peer)
 
