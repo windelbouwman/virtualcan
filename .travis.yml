@@ -5,14 +5,18 @@ matrix:
       before_script:
         - cd python
       script:
+        - export PYTHONPATH=`pwd`
         - pytest -v
     - language: rust
+      cache: cargo
       before_script:
         - cd rust
       script:
         - cargo test --all
     - language: cpp
       compiler: gcc
+      before_install:
+        - sudo apt-get install ninja-build libgtest-dev
       before_script:
         - cd cpp
       script:
@@ -20,4 +24,4 @@ matrix:
         - cd build
         - cmake -G Ninja ..
         - ninja
-
+        - ./test/virtualcan_tests
