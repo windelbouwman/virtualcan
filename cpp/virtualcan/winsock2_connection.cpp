@@ -4,15 +4,13 @@
 
 #include "winsock2_connection.h"
 #include "util.h"
+#include "logging.h"
 
 #include <stdio.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
 static WSADATA wsaData;
-
-#define LOG_TRACE(msg,...) printf("TRACE:" ":" msg "\n", ##__VA_ARGS__)
-#define LOG_ERROR(msg,...) printf("ERROR: at line %d :" msg "\n", __LINE__, ##__VA_ARGS__)
 
 WinSock2CanConnection::WinSock2CanConnection()
 {
@@ -101,23 +99,6 @@ int WinSock2CanConnection::Disconnect()
     return 0;
 }
 
-void WinSock2CanConnection::Send(CanMessage* msg)
-{
-    Packet* packet = new Packet(14);
-    pack_can_msg(packet->data, msg);
-    delete msg;
-
-    printf("Dikke vette send actie\n");
-
-    int result;
-    result = this->tx_packet(packet);
-
-    if (result < 0)
-    {
-        LOG_ERROR("Error in transmission of can message");
-    }
-}
-
 // Transmit some data, preferably `len` bytes.
 int WinSock2CanConnection::tx_data(const uint8_t* buffer, const int len)
 {
@@ -142,69 +123,6 @@ int WinSock2CanConnection::tx_data(const uint8_t* buffer, const int len)
 
     printf("Bytes Sent: %ld\n", iResult);
     return iResult;
-}
-
-// Try hard to emit all data
-int WinSock2CanConnection::tx_all_data(uint8_t* buffer, int len)
-{
-    int result;
-    while (len > 0)
-    {
-        result = tx_data(buffer, len);
-        if (result <= 0)
-        {
-            LOG_ERROR("Transmission of data chunk failed");
-            return -1;
-        }
-
-        len -= result;
-        buffer += result;
-    }
-
-    return 0;
-}
-
-// Transmit a whole packet
-int WinSock2CanConnection::tx_packet(const Packet* packet)
-{
-    int result;
-
-    // tx frame length
-    uint8_t frame_length_buffer[4];
-    pack_u32(frame_length_buffer, packet->length);
-    result = tx_all_data(frame_length_buffer, 4);
-    if (result < 0)
-    {
-        LOG_ERROR("Transmission of data failed");
-        return -1;
-    }
-
-    // tx frame data:
-    result = tx_all_data(packet->data, packet->length);
-    if (result < 0)
-    {
-        LOG_ERROR("Transmission of data failed");
-        return -1;
-    }
-
-    delete packet;
-
-    return 0;
-}
-
-
-Packet* WinSock2CanConnection::rx_packet()
-{
-    uint8_t packet_length_buffer[4];
-    rx_socket_exact(packet_length_buffer, 4);
-
-    uint32_t packet_length = unpack_u32(packet_length_buffer);
-    printf("Packet length: %d\n", packet_length);
-
-    // Create new packet of given size:
-    Packet* packet = new Packet(packet_length);
-    rx_socket_exact(packet->data, packet_length);
-    return packet;
 }
 
 // Read some data from the socket.
@@ -240,30 +158,3 @@ int WinSock2CanConnection::rx_data(uint8_t* buffer, const int len)
     }
 }
 
-// Read exactly a certain amount of bytes from the socket.
-int WinSock2CanConnection::rx_socket_exact(uint8_t* buffer, int len)
-{
-    int bytes_read;
-    while (len > 0)
-    {
-        bytes_read = this->rx_data(buffer, len);
-        if (bytes_read <= 0) {
-            return -1;
-        }
-
-        buffer += bytes_read;
-        len -= bytes_read;
-    }
-
-    return 0;
-}
-
-CanMessage* WinSock2CanConnection::Recv()
-{
-    Packet* packet = rx_packet();
-    LOG_TRACE("Got packet!");
-    CanMessage* msg = new CanMessage();
-    unpack_can_msg(packet->data, msg);
-    delete packet;
-    return msg;
-}

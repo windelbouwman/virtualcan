@@ -1,8 +1,23 @@
 
-
 matrix:
   include:
     - language: python
-        script:
-          - pytest -v
+      before_script:
+        - cd python
+      script:
+        - pytest -v
     - language: rust
+      before_script:
+        - cd rust
+      script:
+        - cargo test --all
+    - language: cpp
+      compiler: gcc
+      before_script:
+        - cd cpp
+      script:
+        - mkdir build
+        - cd build
+        - cmake -G Ninja ..
+        - ninja
+

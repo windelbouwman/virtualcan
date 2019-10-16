@@ -1,6 +1,7 @@
 #ifndef VIRTUALCAN_FRAME_H
 #define VIRTUALCAN_FRAME_H
 
+#include <stdlib.h>
 #include <stdint.h>
 
 // A single packet

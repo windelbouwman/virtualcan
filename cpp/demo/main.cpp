@@ -1,13 +1,12 @@
 
 #include <stdio.h>
-#include "winsock2_connection.h"
+#include "can_connection.h"
 
 int main()
 {
     printf("Demo virtual can usage\n");
 
-    WinSock2CanConnection* can_connection = new WinSock2CanConnection();
-    can_connection->Connect();
+    ICanConnection* can_connection = open_connection();
 
     CanMessage* msg = new CanMessage();
     msg->id = 1337;

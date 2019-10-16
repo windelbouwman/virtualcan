@@ -8,4 +8,5 @@ add_executable(
 target_link_libraries(
     virtualcan_tests
     virtualcan
+    gtest
 )

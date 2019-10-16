@@ -1,11 +1,11 @@
 #ifndef VIRTUALCAN_WINSOCK2_CONNECTION_H
 #define VIRTUALCAN_WINSOCK2_CONNECTION_H
 
-#include "can_interface.h"
+#include "base_connection.h"
 #include "frame.h"
 #include <winsock2.h>
 
-class WinSock2CanConnection : public ICanConnection
+class WinSock2CanConnection : public BaseCanConnection
 {
 	public:
 		WinSock2CanConnection();
@@ -13,19 +13,12 @@ class WinSock2CanConnection : public ICanConnection
 		int Connect();
 		int Disconnect();
 
-		virtual void Send(CanMessage*);
-		virtual CanMessage* Recv();
-	
+	protected:
+		virtual int tx_data(const uint8_t* buffer, const int len);
+		virtual int rx_data(uint8_t* buffer, const int len);
+
 	private:
 		SOCKET ConnectSocket = INVALID_SOCKET;
-
-		int tx_packet(const Packet* packet);
-		int tx_all_data(uint8_t* buffer, int len);
-		int tx_data(const uint8_t* buffer, const int len);
-
-		Packet* rx_packet();
-		int rx_data(uint8_t* buffer, const int len);
-		int rx_socket_exact(uint8_t* buffer, int len);
 };
 
 #endif

@@ -1,17 +1,16 @@
 
-#include <assert.h>
+#include <gtest/gtest.h>
 #include "util.h"
 #include "can_message.h"
 
-void test_u32_packing()
+TEST(VirtualCanTest, TestU32Packing)
 {
     uint8_t buf1[4];
     pack_u32(buf1, 1337);
-    assert(1337 == unpack_u32(buf1));
+    ASSERT_EQ(1337, unpack_u32(buf1));
 }
 
-
-void test_can_packing()
+TEST(VirtualCanTest, TestCanPacking)
 {
     CanMessage* msg1 = new CanMessage();
     msg1->id = 1338;
@@ -25,11 +24,11 @@ void test_can_packing()
 
     CanMessage* msg2 = new CanMessage();
     unpack_can_msg(buf1, msg2);
-    assert(1338 == msg2->id);
-    assert(0 == msg2->extended);
-    assert(2 == msg2->data_size);
-    assert(13 == msg2->data[0]);
-    assert(65 == msg2->data[1]);
+    ASSERT_EQ(1338, msg2->id);
+    ASSERT_EQ(0, msg2->extended);
+    ASSERT_EQ(2, msg2->data_size);
+    ASSERT_EQ(13, msg2->data[0]);
+    ASSERT_EQ(65, msg2->data[1]);
 
     delete msg2;
 }

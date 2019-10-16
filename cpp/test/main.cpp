@@ -1,15 +1,9 @@
 
 #include <stdio.h>
+#include <gtest/gtest.h>
 
-// TODO: use proper unittest framework.
-void test_u32_packing();
-void test_can_packing();
-
-int main()
+int main(int argc, char **argv)
 {
-    printf("Running tests!\n");
-    test_u32_packing();
-    test_can_packing();
-    printf("Success!\n");
-    return 1;
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
