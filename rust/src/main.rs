@@ -1,105 +1,159 @@
-// use std::net::TcpStream;
+#[macro_use]
+extern crate log;
 
-use log::{info, trace};
-use std::error::Error;
-use std::net::SocketAddr;
-use std::sync::{Arc, Mutex};
-use tokio::codec::{Framed, LengthDelimitedCodec};
-use tokio::net::{TcpListener, TcpStream};
-use tokio::prelude::*;
-use tokio::sync::mpsc;
 use bytes::Bytes;
+use futures::channel::mpsc;
+use futures::{SinkExt, StreamExt};
+use tokio::net::{tcp, TcpListener, TcpStream};
+use tokio_util::codec::{FramedRead, FramedWrite, LengthDelimitedCodec};
 
 struct Server {
     peers: Vec<Peer>,
-    msg_counter: Mutex<usize>,
 }
 
 impl Server {
     fn new() -> Server {
-        Server { peers: vec![], msg_counter: Mutex::new(0) }
+        Server { peers: vec![] }
     }
 
-    fn broadcast(&self, msg: Bytes) {
-        let mut l = self.msg_counter.lock().unwrap();
-        *l += 1;
-        trace!("Broadcast msg {}", *l);
+    fn add_peer(&mut self, peer: Peer) {
+        self.peers.push(peer);
+    }
 
-        for peer in &self.peers {
-            trace!("Broadcast to {}", *l);
+    fn broadcast(&mut self, msg: Bytes) {
+        for peer in &mut self.peers {
             peer.send_out(msg.clone());
-            // TODO!
         }
     }
 }
 
 struct Peer {
-    stream: Framed<TcpStream, LengthDelimitedCodec>,
+    tx: mpsc::UnboundedSender<Bytes>,
 }
 
 impl Peer {
-    fn send_out(&self, msg: Bytes) {
+    fn send_out(&mut self, msg: Bytes) {
         trace!("Peer sendout msg {:?}", msg);
+        self.tx.unbounded_send(msg);
     }
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    simple_logger::init().unwrap();
-    println!("Hello, world!");
+enum ServerEvent {
+    Message(Bytes),
+    Peer(Peer),
+}
 
-    // let mut stream = TcpStream::connect("127.0.0.1:8888")?;
+fn main() {
+    simple_logger::init_with_level(log::Level::Info).unwrap();
 
-    let address = "127.0.0.1:8888";
-    info!("Listening on {}", address);
-    let addr = address.parse::<SocketAddr>()?;
-    let listener = TcpListener::bind(&addr)?;
+    let mut runtime = tokio::runtime::Builder::new()
+        .basic_scheduler()
+        .enable_all()
+        .thread_name("Tokio-server-thread")
+        .build()
+        .unwrap();
 
-    let server = Arc::new(Server::new());
+    runtime.block_on(async {
+        if let Err(err) = server_prog().await {
+            error!("Server stopped with error: {}", err);
+        }
+    });
+}
 
-    // accept connections and process them
-    let server_loop = listener
-        .incoming()
-        .map_err(|e| eprintln!("failed to accept socket; error = {:?}", e))
-        .for_each(move |socket| {
-            let server = server.clone();
-            process_socket(server, socket);
-            Ok(())
-        });
+async fn server_prog() -> std::io::Result<()> {
+    let port: u16 = 8888;
+    // let ip = std::net::Ipv6Addr::UNSPECIFIED;
+    // let addr = std::net::SocketAddrV6::new(ip, port, 0, 0);
+    let ip = std::net::Ipv4Addr::UNSPECIFIED;
+    let addr = std::net::SocketAddrV4::new(ip, port);
+    info!("Starting virtual can server at: {:?}", addr);
+    let std_listener = std::net::TcpListener::bind(addr)?;
+    let mut listener = TcpListener::from_std(std_listener)?;
 
-    tokio::run(server_loop);
+    let (broadcast_tx, distributor_rx) = mpsc::unbounded::<ServerEvent>();
+
+    let _distributor_task_handle = tokio::spawn(async {
+        let result = distributor_prog(distributor_rx).await;
+        if let Err(err) = result {
+            error!("Error in distribution task: {:?}", err);
+        }
+    });
+
+    loop {
+        let (client_socket, remote_addr) = listener.accept().await?;
+        info!("New socket from: {:?}", remote_addr);
+        process_socket(broadcast_tx.clone(), client_socket);
+    }
+}
+
+async fn distributor_prog(mut rx: mpsc::UnboundedReceiver<ServerEvent>) -> std::io::Result<()> {
+    let mut server = Server::new();
+    while let Some(item) = rx.next().await {
+        match item {
+            ServerEvent::Message(msg) => {
+                server.broadcast(msg);
+            }
+            ServerEvent::Peer(peer) => {
+                server.add_peer(peer);
+            }
+        }
+    }
 
     Ok(())
 }
 
-fn process_socket(server: Arc<Server>, stream: TcpStream) {
-    // Create packetizer:
-    let t = Framed::new(stream, LengthDelimitedCodec::new());
-    // t.spl
+fn process_socket(broadcast_tx: mpsc::UnboundedSender<ServerEvent>, stream: TcpStream) {
+    let _peer_task_handle = tokio::spawn(async {
+        let result = peer_prog(stream, broadcast_tx).await;
+        if let Err(err) = result {
+            error!("Error in peer task: {:?}", err);
+        }
+    });
+}
 
+async fn peer_prog(
+    mut stream: TcpStream,
+    broadcast_tx: mpsc::UnboundedSender<ServerEvent>,
+) -> std::io::Result<()> {
     // Create outbound channel:
-    let (tx, rx) = mpsc::unbounded_channel::<Bytes>();
+    let (emit_tx, mut emit_rx) = mpsc::unbounded::<Bytes>();
 
-    let tx_task = rx.for_each(|item| {
-        // t.send
-        // let tx_task = t.send_all(rx)
-        Ok(())
-    })
-    .map_err(|e| {
-        println!("Error in peer {}", e);
-    });
-    tokio::spawn(tx_task);
+    let peer = Peer { tx: emit_tx };
+    broadcast_tx
+        .unbounded_send(ServerEvent::Peer(peer))
+        .unwrap();
 
-    // rx half of the connection:
-    let rx_task = t.for_each(move |item| {
-        trace!("Item! {:?}", item);
-        server.broadcast(item.freeze());
-        Ok(())
-    })
-    .map_err(|e| {
-        println!("Error in peer {}", e);
-    });
+    let (tcp_read, tcp_write) = stream.split();
 
-    tokio::spawn(rx_task);
+    // Create packetizers:
+    let mut packet_stream = FramedRead::new(tcp_read, LengthDelimitedCodec::new()).fuse();
+    let mut packet_sink = FramedWrite::new(tcp_write, LengthDelimitedCodec::new());
 
-    // let peer = Peer { stream: t };
+    loop {
+        futures::select! {
+            optional_packet = packet_stream.next() => {
+                if let Some(packet) = optional_packet {
+                    let item = packet?.freeze();
+                    trace!("Item! {:?}", item);
+                    broadcast_tx
+                    .unbounded_send(ServerEvent::Message(item))
+                    .unwrap();
+                } else {
+                    info!("No more incoming packets.");
+                    break;
+                }
+            }
+            optional_item = emit_rx.next() => {
+                if let Some(item) = optional_item {
+                    trace!("BROADCAST: {:?}", item);
+                    packet_sink.send(item).await;
+                } else {
+                    info!("No messages to broadcast.");
+                    break;
+                }
+            }
+        };
+    }
+
+    Ok(())
 }

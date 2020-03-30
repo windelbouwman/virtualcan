@@ -36,7 +36,10 @@ class TcpClient:
     async def _recv_task_func(self):
         self._running = True
         while self._running:
-            bindata = await self._connection.recv_packet()
-            can_message = CanMessage.from_bytes(bindata)
-            # print("Got message!", can_message)
-            await self._rx_queue.put(can_message)
+            try:
+                bindata = await self._connection.recv_packet()
+                can_message = CanMessage.from_bytes(bindata)
+                # print("Got message!", can_message)
+                await self._rx_queue.put(can_message)
+            except asyncio.IncompleteReadError:
+                break

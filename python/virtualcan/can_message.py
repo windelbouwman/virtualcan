@@ -12,7 +12,8 @@ class CanMessage:
         self.data = data
 
     def __repr__(self):
-        return f"Can message id={self.id} extended={self.extended} data={self.data}"
+        hex_data = ' '.join(f'{b:02X}' for b in self.data)
+        return f"Can message id={self.id} extended={self.extended} data={hex_data}"
 
     def __eq__(self, other):
         return (self.id, self.extended, self.data) == (

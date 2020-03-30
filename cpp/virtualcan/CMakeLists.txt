@@ -1,6 +1,10 @@
 
-option(ENABLE_WINSOCK2 "Build winsock2 windows connector." OFF)
-# option(ENABLE_TEST "Build unit tests." OFF)
+
+if (WIN32)
+    set(CONNECTION_IMPLEMENTATION_SRC winsock2_connection.cpp)
+else()
+    set(CONNECTION_IMPLEMENTATION_SRC unix_connection.cpp)
+endif()
 
 add_library(
     virtualcan
@@ -9,14 +13,15 @@ add_library(
     can_message.cpp
     frame.cpp
     util.cpp
-    unix_connection.cpp
-    # winsock2_connection.cpp
+    ${CONNECTION_IMPLEMENTATION_SRC}
 )
 
-target_link_libraries(
-    virtualcan
-    # ws2_32
-)
+if (WIN32)
+    target_link_libraries(
+        virtualcan
+        ws2_32
+    )
+endif()
 
 target_include_directories(
     virtualcan

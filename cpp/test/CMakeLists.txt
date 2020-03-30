@@ -10,3 +10,15 @@ target_link_libraries(
     virtualcan
     gtest
 )
+
+target_include_directories(
+    virtualcan_tests
+    PRIVATE
+    "C:/Program Files (x86)/googletest-distribution/include"
+)
+
+target_link_directories(
+    virtualcan_tests
+    PRIVATE
+    "C:/Program Files (x86)/googletest-distribution/lib"
+)
