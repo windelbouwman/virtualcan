@@ -15,4 +15,7 @@ setup(
         "Topic :: Software Development :: Embedded Systems",
         "Topic :: Software Development :: Testing",
     ],
+    entry_points={
+        'can.interface': ["virtualcan = virtualcan.can:VirtualCanBus"],
+    },
 )

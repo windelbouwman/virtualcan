@@ -4,7 +4,7 @@ extern crate log;
 use bytes::Bytes;
 use futures::channel::mpsc;
 use futures::{SinkExt, StreamExt};
-use tokio::net::{tcp, TcpListener, TcpStream};
+use tokio::net::{TcpListener, TcpStream};
 use tokio_util::codec::{FramedRead, FramedWrite, LengthDelimitedCodec};
 
 struct Server {
@@ -61,7 +61,7 @@ fn main() {
 }
 
 async fn server_prog() -> std::io::Result<()> {
-    let port: u16 = 8888;
+    let port: u16 = 18881;
     // let ip = std::net::Ipv6Addr::UNSPECIFIED;
     // let addr = std::net::SocketAddrV6::new(ip, port, 0, 0);
     let ip = std::net::Ipv4Addr::UNSPECIFIED;
@@ -69,6 +69,7 @@ async fn server_prog() -> std::io::Result<()> {
     info!("Starting virtual can server at: {:?}", addr);
     let std_listener = std::net::TcpListener::bind(addr)?;
     let mut listener = TcpListener::from_std(std_listener)?;
+    info!("Bound to {:?}", addr);
 
     let (broadcast_tx, distributor_rx) = mpsc::unbounded::<ServerEvent>();
 

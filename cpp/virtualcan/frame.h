@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+namespace virtualcan {
+
 // A single packet
 class Packet {
 	public:
@@ -13,5 +15,7 @@ class Packet {
 		size_t length;
 		uint8_t* data;
 };
+
+}
 
 #endif

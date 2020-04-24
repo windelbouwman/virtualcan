@@ -7,6 +7,8 @@
 #include "unix_connection.h"
 #endif
 
+namespace virtualcan {
+
 ICanConnection* open_connection()
 {
     #ifdef WIN32
@@ -19,4 +21,6 @@ ICanConnection* open_connection()
     can_connection->Connect();
 
     return can_connection;
+}
+
 }

@@ -4,6 +4,8 @@
 
 #include <stdint.h>
 
+namespace virtualcan {
+
 struct CanMessage {
     uint32_t id;
     uint32_t extended;
@@ -16,5 +18,7 @@ typedef struct CanMessage CanMessage_t;
 void print_can_message(const CanMessage* can_msg);
 void pack_can_msg(uint8_t* buffer, CanMessage* msg);
 void unpack_can_msg(uint8_t* buffer, CanMessage* msg);
+
+}
 
 #endif

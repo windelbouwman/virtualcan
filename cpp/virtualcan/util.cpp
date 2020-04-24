@@ -1,6 +1,8 @@
 
 #include "util.h"
 
+namespace virtualcan {
+
 // pack uint32_t as big endian into a buffer
 void pack_u32(uint8_t* buffer, uint32_t value)
 {
@@ -27,4 +29,6 @@ uint32_t unpack_u32(uint8_t* buffer)
     }
 
     return value;
+}
+
 }

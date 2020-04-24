@@ -3,6 +3,10 @@
 
 #include "can_interface.h"
 
+namespace virtualcan {
+
 ICanConnection* open_connection();
+
+}
 
 #endif

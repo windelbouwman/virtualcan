@@ -3,6 +3,8 @@
 #include "util.h"
 #include "can_message.h"
 
+using namespace virtualcan;
+
 TEST(VirtualCanTest, TestU32Packing)
 {
     uint8_t buf1[4];

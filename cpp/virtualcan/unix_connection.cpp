@@ -10,6 +10,8 @@
 #include <string.h>
 #include <netdb.h>
 
+namespace virtualcan {
+
 UnixCanConnection::UnixCanConnection()
 {
     this->socket_fd = -1;
@@ -80,4 +82,6 @@ int UnixCanConnection::rx_data(uint8_t* buffer, const int len)
         return -1;
     }
     return result;
+}
+
 }

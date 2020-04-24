@@ -3,6 +3,8 @@
 #include "util.h"
 #include <stdio.h>
 
+namespace virtualcan {
+
 void print_can_message(const CanMessage* can_msg)
 {
     int i;
@@ -45,4 +47,6 @@ void unpack_can_msg(uint8_t* buffer, CanMessage* msg)
     {
         msg->data[i] = buffer[6 + i];
     }
+}
+
 }

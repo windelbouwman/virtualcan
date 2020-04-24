@@ -5,6 +5,8 @@
 #include "base_connection.h"
 #include <sys/socket.h>
 
+namespace virtualcan {
+
 class UnixCanConnection : public BaseCanConnection {
     public:
         UnixCanConnection();
@@ -18,5 +20,7 @@ class UnixCanConnection : public BaseCanConnection {
     private:
         int socket_fd;
 };
+
+}
 
 #endif

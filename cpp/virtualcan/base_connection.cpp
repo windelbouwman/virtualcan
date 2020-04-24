@@ -2,6 +2,9 @@
 #include "logging.h"
 #include "util.h"
 
+namespace virtualcan
+{
+
 BaseCanConnection::~BaseCanConnection()
 {
 }
@@ -112,4 +115,6 @@ int BaseCanConnection::rx_socket_exact(uint8_t* buffer, int len)
     }
 
     return 0;
+}
+
 }

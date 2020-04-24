@@ -24,4 +24,3 @@ matrix:
         - cd build
         - cmake -G Ninja ..
         - ninja
-        - ./test/virtualcan_tests

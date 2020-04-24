@@ -5,6 +5,8 @@
 #include "frame.h"
 #include <winsock2.h>
 
+namespace virtualcan {
+
 class WinSock2CanConnection : public BaseCanConnection
 {
 	public:
@@ -20,5 +22,7 @@ class WinSock2CanConnection : public BaseCanConnection
 	private:
 		SOCKET ConnectSocket = INVALID_SOCKET;
 };
+
+}
 
 #endif

@@ -3,7 +3,11 @@
 
 #include <stdint.h>
 
+namespace virtualcan {
+
 void pack_u32(uint8_t* buffer, uint32_t value);
 uint32_t unpack_u32(uint8_t* buffer);
+
+}
 
 #endif

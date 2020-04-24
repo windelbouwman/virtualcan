@@ -5,6 +5,9 @@
 #include "can_interface.h"
 #include "frame.h"
 
+namespace virtualcan
+{
+
 class BaseCanConnection : public ICanConnection
 {
 	public:
@@ -24,5 +27,7 @@ class BaseCanConnection : public ICanConnection
 		Packet* rx_packet();
 		int rx_socket_exact(uint8_t* buffer, int len);
 };
+
+}
 
 #endif

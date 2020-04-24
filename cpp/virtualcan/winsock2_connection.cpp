@@ -10,6 +10,8 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
+namespace virtualcan {
+
 static WSADATA wsaData;
 
 WinSock2CanConnection::WinSock2CanConnection()
@@ -43,7 +45,7 @@ int WinSock2CanConnection::Connect()
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
 
-    #define DEFAULT_PORT "8888"
+    #define DEFAULT_PORT "18881"
     #define DEFAULT_HOST "127.0.0.1"
 
     // Resolve the server address and port
@@ -72,6 +74,7 @@ int WinSock2CanConnection::Connect()
     // Connect to server.
     iResult = connect( ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
     if (iResult == SOCKET_ERROR) {
+        LOG_ERROR("Cannot connect!");
         closesocket(ConnectSocket);
         this->ConnectSocket = INVALID_SOCKET;
     }
@@ -158,3 +161,4 @@ int WinSock2CanConnection::rx_data(uint8_t* buffer, const int len)
     }
 }
 
+}
