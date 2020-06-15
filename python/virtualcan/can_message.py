@@ -12,7 +12,7 @@ class CanMessage:
         self.data = data
 
     def __repr__(self):
-        hex_data = ' '.join(f'{b:02X}' for b in self.data)
+        hex_data = " ".join(f"{b:02X}" for b in self.data)
         return f"Can message id={self.id} extended={self.extended} data={hex_data}"
 
     def __eq__(self, other):
@@ -36,7 +36,7 @@ class CanMessage:
         data = binascii.unhexlify(json_data["bindata"])
         return cls(id, extended, data)
 
-    _CAN_FMT = '>IBB8s'
+    _CAN_FMT = ">IBB8s"
     _CAN_FLAGS_EXTENDED = 1
 
     def to_bytes(self):
@@ -44,7 +44,7 @@ class CanMessage:
         flags = 0
         if self.extended:
             flags |= self._CAN_FLAGS_EXTENDED
-        
+
         data_len = len(self.data)
         bindata = struct.pack(self._CAN_FMT, self.id, flags, data_len, self.data)
         return bindata

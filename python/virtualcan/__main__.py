@@ -30,6 +30,7 @@ if __name__ == "__main__":
             zmq_client_dump()
     else:
         from .cli.tcp import tcp_can_server, tcp_can_client, tcp_client_dump
+
         if args.server:
             tcp_can_server()
         elif args.client:

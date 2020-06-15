@@ -8,10 +8,11 @@ from ..can_message import CanMessage
 class SyncTcpClient:
     """ Synchronous implementation.
     """
+
     _FMT = ">I"
 
-    def __init__(self):
-        self._socket = socket.create_connection(('localhost', 18881))
+    def __init__(self, host="localhost", port=18881):
+        self._socket = socket.create_connection((host, port))
         self._rx_queue = queue.Queue()
         self._rx_thread = threading.Thread(target=self._recv_loop, daemon=True)
         self._rx_thread.start()
@@ -19,7 +20,7 @@ class SyncTcpClient:
     def send_message(self, can_message):
         bindata = can_message.to_bytes()
         self._send_packet(bindata)
-    
+
     def _send_packet(self, data):
         data_len = len(data)
         header_data = struct.pack(self._FMT, data_len)

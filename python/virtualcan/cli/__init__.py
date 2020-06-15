@@ -1,3 +1,2 @@
 """ Command line interface commands.
 """
-

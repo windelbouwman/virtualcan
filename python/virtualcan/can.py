@@ -24,7 +24,13 @@ class VirtualCanBus(BusABC):
 
     def __init__(self, channel=None, **kwargs):
         super().__init__(channel=channel, **kwargs)
-        self._client = SyncTcpClient()
+        if channel:
+            host, port = channel.split(":")
+            host = host.strip()
+            port = int(port)
+            self._client = SyncTcpClient(host=host, port=port)
+        else:
+            self._client = SyncTcpClient()
 
     def send(self, msg, timeout=None):
         new_msg = CanMessage(msg.arbitration_id, msg.is_extended_id, msg.data)
@@ -40,14 +46,14 @@ class VirtualCanBus(BusABC):
                 arbitration_id=msg.id,
                 is_extended_id=msg.extended,
                 data=msg.data,
-                timestamp=time.time(),   # Better than nothing...
+                timestamp=time.time(),  # Better than nothing...
             )
         return can_msg, False
 
     @property
     def state(self):
         return BusState.ACTIVE
-    
+
     @state.setter
     def state(self, new_state):
         pass

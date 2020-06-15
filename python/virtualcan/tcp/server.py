@@ -6,7 +6,8 @@ from .connection import Connection
 class TcpServer:
     """ Central TCP server for CAN messages!
     """
-    logger = logging.getLogger('tcp-server')
+
+    logger = logging.getLogger("tcp-server")
 
     def __init__(self):
         self._peers = []
@@ -15,7 +16,9 @@ class TcpServer:
         port = 8888
         server = await asyncio.start_server(self.handle_peer, "127.0.0.1", port)
         self._broadcast_tx_queue = asyncio.Queue()
-        self._broadcast_tx_task_handle = asyncio.create_task(self._broadcast_tx_task_func())
+        self._broadcast_tx_task_handle = asyncio.create_task(
+            self._broadcast_tx_task_func()
+        )
 
         async with server:
             await server.serve_forever()

@@ -23,7 +23,9 @@ def tcp_can_client():
         count = 25000
         t1 = time.time()
         for x in range(count):
-            can_message = CanMessage(1337 + x, False, bytes([1, 0xF2, 3, 0xCA, 0xFE, x % 255]))
+            can_message = CanMessage(
+                1337 + x, False, bytes([1, 0xF2, 3, 0xCA, 0xFE, x % 255])
+            )
             await client.send_message(can_message)
         t2 = time.time()
         time_delta = t2 - t1
@@ -51,5 +53,3 @@ def tcp_client_dump():
         await client.disconnect()
 
     asyncio.run(task())
-
-

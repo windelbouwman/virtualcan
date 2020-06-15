@@ -15,7 +15,7 @@ void BaseCanConnection::Send(CanMessage* msg)
     pack_can_msg(packet->data, msg);
     delete msg;
 
-    printf("Dikke vette send actie\n");
+    LOG_TRACE("Dikke vette send actie");
 
     int result;
     result = this->tx_packet(packet);
@@ -71,7 +71,7 @@ Packet* BaseCanConnection::rx_packet()
     rx_socket_exact(packet_length_buffer, 4);
 
     uint32_t packet_length = unpack_u32(packet_length_buffer);
-    printf("Packet length: %d\n", packet_length);
+    LOG_TRACE("Packet length: %d", packet_length);
 
     // Create new packet of given size:
     Packet* packet = new Packet(packet_length);

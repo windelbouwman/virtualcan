@@ -124,7 +124,7 @@ int WinSock2CanConnection::tx_data(const uint8_t* buffer, const int len)
         return -1;
     }
 
-    printf("Bytes Sent: %ld\n", iResult);
+    LOG_TRACE("Bytes Sent: %ld", iResult);
     return iResult;
 }
 
