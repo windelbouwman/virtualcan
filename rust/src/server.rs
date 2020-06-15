@@ -32,26 +32,31 @@ impl Server {
         self.peers.push(peer);
     }
 
-    fn broadcast(&mut self, msg: Bytes) {
+    fn broadcast(&mut self, source_port: u32, msg: Bytes) {
         for peer in &mut self.peers {
-            peer.send_out(msg.clone());
+            peer.send_out(source_port, msg.clone());
         }
     }
 }
 
 struct Peer {
     tx: mpsc::UnboundedSender<Bytes>,
+
+    /// A unique ID for this peers 'port'
+    port_id: u32,
 }
 
 impl Peer {
-    fn send_out(&mut self, msg: Bytes) {
+    fn send_out(&mut self, source_port: u32, msg: Bytes) {
         trace!("Peer sendout msg {:?}", msg);
-        self.tx.unbounded_send(msg);
+        if source_port != self.port_id {
+            self.tx.unbounded_send(msg);
+        }
     }
 }
 
 enum ServerEvent {
-    Message(Bytes),
+    Message { source_port: u32, msg: Bytes },
     Peer(Peer),
 }
 
@@ -74,10 +79,15 @@ async fn server_prog(port: u16) -> std::io::Result<()> {
         }
     });
 
+    let mut peer_counter: u32 = 0;
     loop {
         let (client_socket, remote_addr) = listener.accept().await?;
-        info!("New socket from: {:?}", remote_addr);
-        process_socket(broadcast_tx.clone(), client_socket);
+        info!(
+            "New socket from: {:?} --> id = {}",
+            remote_addr, peer_counter
+        );
+        process_socket(broadcast_tx.clone(), client_socket, peer_counter);
+        peer_counter += 1;
     }
 }
 
@@ -85,8 +95,8 @@ async fn distributor_prog(mut rx: mpsc::UnboundedReceiver<ServerEvent>) -> std::
     let mut server = Server::new();
     while let Some(item) = rx.next().await {
         match item {
-            ServerEvent::Message(msg) => {
-                server.broadcast(msg);
+            ServerEvent::Message { source_port, msg } => {
+                server.broadcast(source_port, msg);
             }
             ServerEvent::Peer(peer) => {
                 server.add_peer(peer);
@@ -97,9 +107,13 @@ async fn distributor_prog(mut rx: mpsc::UnboundedReceiver<ServerEvent>) -> std::
     Ok(())
 }
 
-fn process_socket(broadcast_tx: mpsc::UnboundedSender<ServerEvent>, stream: TcpStream) {
-    let _peer_task_handle = tokio::spawn(async {
-        let result = peer_prog(stream, broadcast_tx).await;
+fn process_socket(
+    broadcast_tx: mpsc::UnboundedSender<ServerEvent>,
+    stream: TcpStream,
+    peer_id: u32,
+) {
+    let _peer_task_handle = tokio::spawn(async move {
+        let result = peer_prog(stream, broadcast_tx, peer_id).await;
         if let Err(err) = result {
             error!("Error in peer task: {:?}", err);
         }
@@ -109,11 +123,15 @@ fn process_socket(broadcast_tx: mpsc::UnboundedSender<ServerEvent>, stream: TcpS
 async fn peer_prog(
     mut stream: TcpStream,
     broadcast_tx: mpsc::UnboundedSender<ServerEvent>,
+    peer_id: u32,
 ) -> std::io::Result<()> {
     // Create outbound channel:
     let (emit_tx, mut emit_rx) = mpsc::unbounded::<Bytes>();
 
-    let peer = Peer { tx: emit_tx };
+    let peer = Peer {
+        tx: emit_tx,
+        port_id: peer_id,
+    };
     broadcast_tx
         .unbounded_send(ServerEvent::Peer(peer))
         .unwrap();
@@ -131,7 +149,7 @@ async fn peer_prog(
                     let item = packet?.freeze();
                     trace!("Item! {:?}", item);
                     broadcast_tx
-                    .unbounded_send(ServerEvent::Message(item))
+                    .unbounded_send(ServerEvent::Message { source_port: peer_id, msg: item } )
                     .unwrap();
                 } else {
                     info!("No more incoming packets.");
