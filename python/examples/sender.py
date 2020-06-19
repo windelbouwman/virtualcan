@@ -9,6 +9,8 @@ args = parser.parse_args()
 
 bus = can.Bus(interface='virtualcan', channel=args.server)
 
+counter = 0
 while True:
-    bus.send(can.Message(arbitration_id=13, data=[1,2,3,4,5]))
-    time.sleep(0.3)
+    bus.send(can.Message(arbitration_id=13, data=[1,2,3,4,counter]))
+    counter = (counter + 1) % 256
+    time.sleep(0.01)

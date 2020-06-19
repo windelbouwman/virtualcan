@@ -15,14 +15,14 @@ A virtual can bus can be useful during development of a CAN based system.
 
 To start the virtual CAN server, use the rust implementation:
 
-    $ cd rust
+    $ cd rust/server
     $ cargo run --release -- --port 18881
 
 ## Python
 
-To use this from python, install the python can package, and next the virtualcan module:
+To use this from python, install the python-can package, and next the virtualcan module:
 
-    $ pip install can
+    $ pip install python-can
     $ cd python
     $ pip install .
 
