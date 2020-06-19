@@ -5,7 +5,6 @@ mod can_frame;
 mod client;
 mod tcp_endpoint;
 
-// if cfg(os = linux)
 #[cfg(target_os = "linux")]
 mod socket_can_endpoint;
 
@@ -33,7 +32,7 @@ fn main() {
     let log_level = match verbosity {
         0 => log::Level::Info,
         1 => log::Level::Debug,
-        2 | _ => log::Level::Trace,
+        _ => log::Level::Trace,
     };
 
     simple_logger::init_with_level(log_level).unwrap();

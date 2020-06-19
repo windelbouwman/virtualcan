@@ -1,7 +1,6 @@
-use socketcan;
-
 use crate::can_frame::CanFrame;
 use crate::client::{CanSink, CanSource};
+use socketcan;
 use std::sync::Arc;
 
 pub struct SocketCanBus {

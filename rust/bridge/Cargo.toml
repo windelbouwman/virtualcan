@@ -14,11 +14,6 @@ log = "0.4"
 simple_logger = "1.3"
 scroll = "0.10"
 
-# tokio = { version = "0.2", features = ["tcp", "rt-core", "stream"] }
-# tokio-util = { version = "0.3", features = ["codec"] }
-# futures = "0.3"
-
-
 [target.'cfg(target_os = "linux")'.dependencies]
 socketcan = "1.7"
 

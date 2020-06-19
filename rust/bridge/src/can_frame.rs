@@ -24,20 +24,16 @@ impl CanFrame {
         // size u8
         // data [u8]
 
-        // unimplemented!("TODO!");
         buf.to_vec()
     }
 
     pub fn from_bytes(buf: &[u8]) -> Self {
-        // unimplemented!("TODO!");
         let id: u32 = buf.pread_with(0, scroll::BE).unwrap();
         let extended: bool = buf[4] & 1 == 1;
         let size = buf[5];
-        // println!("CAN frame size: {}", size);
 
         let mut data = vec![];
         for i in 0..size {
-            // println!("i={}", i);
             data.push(buf[6 + i as usize])
         }
 
