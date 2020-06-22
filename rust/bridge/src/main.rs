@@ -19,11 +19,31 @@ fn main() {
                 .help("Sets the level of verbosity."),
         )
         .arg(
+            clap::Arg::with_name("host")
+                .long("host")
+                .takes_value(true)
+                .help("Specify virtual can server IP to connect to.")
+                .default_value("127.0.0.1"),
+        )
+        .arg(
             clap::Arg::with_name("port")
                 .long("port")
                 .short("p")
                 .takes_value(true)
+                .help("Specify virtual can server port to connect to.")
                 .default_value("18881"),
+        )
+        .arg(
+            clap::Arg::with_name("candevice")
+                .long("can")
+                .takes_value(true)
+                .help("Specify can port to connect to, for example can0"),
+        )
+        .arg(
+            clap::Arg::with_name("peer-port")
+                .long("peer-port")
+                .takes_value(true)
+                .help("Specify second virtual can server port to connect to."),
         )
         .get_matches();
 
@@ -37,6 +57,8 @@ fn main() {
 
     simple_logger::init_with_level(log_level).unwrap();
 
+    let host = matches.value_of("host").expect("to be present");
+
     use std::str::FromStr;
     let port: u16 = u16::from_str(
         matches
@@ -45,14 +67,23 @@ fn main() {
     )
     .unwrap_or(18881);
 
-    if cfg!(target_os = "linux") {
-        client::bridge_can0("127.0.0.1", port);
+    if matches.is_present("candevice") {
+        let can_device = matches.value_of("candevice").unwrap();
+        info!("Bridging to real can device {}!", can_device);
+        client::bridge_can0(host, port, can_device);
+    } else if matches.is_present("peer-port") {
+        info!("Bridging to other virtual can server!");
+
+        let peer_port: u16 = u16::from_str(
+            matches
+                .value_of("peer-port")
+                .expect("port value must be present"),
+        )
+        .unwrap_or(18882);
+
+        client::bridge(host, port, "127.0.0.1", peer_port);
     } else {
-        let do_chain = true;
-        if do_chain {
-            client::bridge("127.0.0.1", port);
-        } else {
-            client::dump("127.0.0.1", port);
-        }
+        info!("Dumping can traffic!");
+        client::dump(host, port);
     }
 }

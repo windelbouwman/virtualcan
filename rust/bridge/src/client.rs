@@ -14,9 +14,9 @@ pub trait CanSink {
 // trait CanInterface  = CanSink + CanSource;
 
 /// Bridge socket can to tcp / ip can port!
-pub fn bridge(host: &str, port: u16) {
+pub fn bridge(host: &str, port: u16, peer_host: &str, peer_port: u16) {
     let can0 = VirtualCanBus::new(host, port).unwrap();
-    let can1 = VirtualCanBus::new("127.0.0.1", 18882).unwrap();
+    let can1 = VirtualCanBus::new(peer_host, peer_port).unwrap();
 
     let (can0_copy, can1_copy) = (can0.dup(), can1.dup());
     let _t1 = std::thread::spawn(move || {
@@ -27,10 +27,10 @@ pub fn bridge(host: &str, port: u16) {
 }
 
 #[cfg(target_os = "linux")]
-pub fn bridge_can0(host: &str, port: u16) {
+pub fn bridge_can0(host: &str, port: u16, can_device: &str) {
     use crate::socket_can_endpoint::SocketCanBus;
     let can0 = VirtualCanBus::new(host, port).unwrap();
-    let can1 = SocketCanBus::new("can0");
+    let can1 = SocketCanBus::new(can_device);
 
     let (can0_copy, can1_copy) = (can0.dup(), can1.dup());
     let _t1 = std::thread::spawn(move || {
@@ -41,7 +41,7 @@ pub fn bridge_can0(host: &str, port: u16) {
 }
 
 #[cfg(not(target_os = "linux"))]
-pub fn bridge_can0(_host: &str, _port: u16) {
+pub fn bridge_can0(_host: &str, _port: u16, _can_device: &str) {
     unimplemented!("Not running on linux!");
 }
 
