@@ -23,7 +23,7 @@ WinSock2CanConnection::~WinSock2CanConnection()
 {
 }
 
-int WinSock2CanConnection::Connect()
+int WinSock2CanConnection::Connect(const char* host, const uint16_t port)
 {
     printf("WinSock2CanConnection::Connect\n");
 
@@ -45,11 +45,11 @@ int WinSock2CanConnection::Connect()
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
 
-    #define DEFAULT_PORT "18881"
-    #define DEFAULT_HOST "127.0.0.1"
+    char port_text[10];
+    snprintf(port_text, 10, "%d", port);
 
     // Resolve the server address and port
-    iResult = getaddrinfo(DEFAULT_HOST, DEFAULT_PORT, &hints, &result);
+    iResult = getaddrinfo(host, port_text, &hints, &result);
     if (iResult != 0) {
         LOG_ERROR("getaddrinfo failed: %d", iResult);
         WSACleanup();

@@ -21,14 +21,11 @@ UnixCanConnection::~UnixCanConnection()
 {
 }
 
-int UnixCanConnection::Connect()
+int UnixCanConnection::Connect(const char* host, const uint16_t port)
 {
     struct hostent *server;
     struct sockaddr_in serv_addr;
     int result;
-
-    const char* hostname = "localhost";
-    int portno = 8888;
 
     // Create socket:
     this->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -38,10 +35,10 @@ int UnixCanConnection::Connect()
     }
 
     // Lookup hostname:
-    server = gethostbyname(hostname);
+    server = gethostbyname(host);
     if (server == NULL)
     {
-        LOG_ERROR("Failed to lookup hostname: %s!", hostname);
+        LOG_ERROR("Failed to lookup hostname: %s!", host);
         return -1;
     }
 
@@ -49,7 +46,7 @@ int UnixCanConnection::Connect()
     bzero(&serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     bcopy(server->h_addr, &serv_addr.sin_addr.s_addr, server->h_length);
-    serv_addr.sin_port = htons(portno);
+    serv_addr.sin_port = htons(port);
 
     result = connect(this->socket_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
     if (result < 0) {

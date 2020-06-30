@@ -5,7 +5,7 @@
 
 namespace virtualcan {
 
-ICanConnection* open_connection();
+ICanConnection* open_connection(const char* host, const uint16_t port);
 
 }
 

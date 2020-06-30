@@ -12,7 +12,7 @@ class WinSock2CanConnection : public BaseCanConnection
 	public:
 		WinSock2CanConnection();
         virtual ~WinSock2CanConnection();
-		int Connect();
+		int Connect(const char* host, const uint16_t port);
 		int Disconnect();
 
 	protected:
