@@ -46,7 +46,20 @@ impl CanSink for SocketCanBus {
         // }
         let data = &frame.data;
         let frame2 = socketcan::CANFrame::new(id, data, false, false).unwrap();
-        self.sock.write_frame_insist(&frame2)?;
+
+        // retry loop:
+        loop {
+            match self.sock.write_frame_insist(&frame2)
+            {
+                Ok(_) => break,
+                Err(err) => {
+                    let wait_time = std::time::Duration::from_millis(5);
+                    // error, sleep, and retry later!
+                    debug!("Error in sending can frame: {:?} retrying after {:?}!", err, wait_time);
+                    std::thread::sleep(wait_time);
+                }
+            }
+        }
         Ok(())
     }
 }

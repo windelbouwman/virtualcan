@@ -19,11 +19,17 @@ pub fn bridge(host: &str, port: u16, peer_host: &str, peer_port: u16) {
     let can1 = VirtualCanBus::new(peer_host, peer_port).unwrap();
 
     let (can0_copy, can1_copy) = (can0.dup(), can1.dup());
-    let _t1 = std::thread::spawn(move || {
-        chain_func(can0_copy, can1_copy);
+    let t1 = std::thread::spawn(move || {
+        if let Err(err) = chain_func(can0_copy, can1_copy) {
+            error!("chain function ended with error: {}", err);
+        }
+        info!("Chain function completed!");
     });
-    chain_func(can1, can0);
-    // _t1.join();
+    if let Err(err) = chain_func(can1, can0) {
+        error!("chain function ended with error: {}", err);
+    }
+    info!("Chain function completed!");
+    t1.join().unwrap();
 }
 
 #[cfg(target_os = "linux")]
@@ -33,11 +39,17 @@ pub fn bridge_can0(host: &str, port: u16, can_device: &str) {
     let can1 = SocketCanBus::new(can_device);
 
     let (can0_copy, can1_copy) = (can0.dup(), can1.dup());
-    let _t1 = std::thread::spawn(move || {
-        chain_func(can0_copy, can1_copy);
+    let t1 = std::thread::spawn(move || {
+        if let Err(err) = chain_func(can0_copy, can1_copy) {
+            error!("chain function ended with error: {}", err);
+        }
+        info!("Chain function completed!");
     });
-    chain_func(can1, can0);
-    // _t1.join();
+    if let Err(err) = chain_func(can1, can0) {
+        error!("chain function ended with error: {}", err);
+    }
+    info!("Chain function completed!");
+    t1.join().unwrap();
 }
 
 #[cfg(not(target_os = "linux"))]
@@ -62,13 +74,13 @@ where
     }
 }
 
-fn chain_func<I1, I2>(mut can0: I1, mut can1: I2)
+fn chain_func<I1, I2>(mut can0: I1, mut can1: I2) -> Result<(), String>
 where
     I1: CanSource,
     I2: CanSink,
 {
     loop {
-        let frame = can0.recv().unwrap();
-        can1.send(frame).unwrap();
+        let frame = can0.recv().map_err(|e| format!("{:?}", e))?;
+        can1.send(frame).map_err(|e| format!("{:?}", e))?;
     }
 }
