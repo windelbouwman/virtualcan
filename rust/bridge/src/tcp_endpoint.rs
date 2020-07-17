@@ -1,5 +1,5 @@
 use crate::can_frame::CanFrame;
-use crate::client::{CanSink, CanSource};
+use crate::client::{CanDevice, CanSink, CanSource};
 use scroll::{Pread, Pwrite};
 use std::io::{Read, Write};
 use std::net::TcpStream;
@@ -36,11 +36,6 @@ impl VirtualCanBus {
         Ok(VirtualCanBus { socket: stream })
     }
 
-    pub fn dup(&self) -> Self {
-        let sock = self.socket.try_clone().unwrap();
-        VirtualCanBus { socket: sock }
-    }
-
     /// Length prefix emit a byte blob
     fn send_blob(&mut self, buf: &[u8]) -> Result<(), VirtualCanError> {
         let mut header: [u8; 4] = [0; 4];
@@ -58,6 +53,17 @@ impl VirtualCanBus {
         let mut buf = vec![0u8; packet_size as usize];
         self.socket.read_exact(&mut buf)?;
         Ok(buf)
+    }
+}
+
+impl CanDevice for VirtualCanBus {
+    fn dup(&self) -> Self {
+        let sock = self.socket.try_clone().unwrap();
+        VirtualCanBus { socket: sock }
+    }
+
+    fn close(&self) {
+        self.socket.shutdown(std::net::Shutdown::Both);
     }
 }
 

@@ -1,5 +1,5 @@
 use crate::can_frame::CanFrame;
-use crate::client::{CanSink, CanSource};
+use crate::client::{CanDevice, CanSink, CanSource};
 use socketcan;
 use std::sync::Arc;
 
@@ -27,10 +27,16 @@ impl SocketCanBus {
 
         SocketCanBus { sock }
     }
+}
 
-    pub fn dup(&self) -> Self {
+impl CanDevice for SocketCanBus {
+    fn dup(&self) -> Self {
         let sock = self.sock.clone();
         SocketCanBus { sock }
+    }
+
+    fn close(&self) {
+        // self.sock.close();
     }
 }
 
@@ -49,13 +55,15 @@ impl CanSink for SocketCanBus {
 
         // retry loop:
         loop {
-            match self.sock.write_frame_insist(&frame2)
-            {
+            match self.sock.write_frame_insist(&frame2) {
                 Ok(_) => break,
                 Err(err) => {
                     let wait_time = std::time::Duration::from_millis(5);
                     // error, sleep, and retry later!
-                    debug!("Error in sending can frame: {:?} retrying after {:?}!", err, wait_time);
+                    debug!(
+                        "Error in sending can frame: {:?} retrying after {:?}!",
+                        err, wait_time
+                    );
                     std::thread::sleep(wait_time);
                 }
             }

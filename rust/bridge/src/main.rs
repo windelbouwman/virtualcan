@@ -70,7 +70,7 @@ fn main() {
     if matches.is_present("candevice") {
         let can_device = matches.value_of("candevice").unwrap();
         info!("Bridging to real can device {}!", can_device);
-        client::bridge_can0(host, port, can_device);
+        client::socketcan::bridge_can0(host, port, can_device);
     } else if matches.is_present("peer-port") {
         info!("Bridging to other virtual can server!");
 
