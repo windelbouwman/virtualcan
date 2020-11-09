@@ -32,6 +32,7 @@ impl VirtualCanBus {
         let ip = std::net::IpAddr::from_str(host).unwrap();
         let addr = std::net::SocketAddr::new(ip, port);
         let stream = TcpStream::connect(addr)?;
+        stream.set_nodelay(true)?;
 
         Ok(VirtualCanBus { socket: stream })
     }

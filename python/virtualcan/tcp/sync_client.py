@@ -13,6 +13,7 @@ class SyncTcpClient:
 
     def __init__(self, host="localhost", port=18881):
         self._socket = socket.create_connection((host, port))
+        self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         self._rx_queue = queue.Queue()
         self._rx_thread = threading.Thread(target=self._recv_loop, daemon=True)
         self._rx_thread.start()

@@ -136,6 +136,7 @@ async fn peer_prog(
         .unbounded_send(ServerEvent::Peer(peer))
         .unwrap();
 
+    stream.set_nodelay(true)?;
     let (tcp_read, tcp_write) = stream.split();
 
     // Create packetizers:
