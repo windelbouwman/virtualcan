@@ -1,0 +1,22 @@
+
+jobs:
+  build-rust:
+    runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - name: Build rust code
+      run: bash rust/build.sh
+
+  build-cpp:
+    runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - name: Build C++ code
+      run: bash cpp/build.sh
+
+  build-python:
+    runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - name: Build python code
+      run: bash python/build.sh
