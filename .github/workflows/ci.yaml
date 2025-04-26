@@ -1,4 +1,6 @@
 
+on: push
+
 jobs:
   build-rust:
     runs-on: ubuntu-latest
