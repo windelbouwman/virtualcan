@@ -11,6 +11,8 @@ jobs:
 
   build-cpp:
     runs-on: ubuntu-latest
+    container:
+      image: windelbouwman/virtualcan-build-env:latest
     steps:
       - uses: actions/checkout@v4
       - name: Build C++ code
@@ -18,6 +20,8 @@ jobs:
 
   build-python:
     runs-on: ubuntu-latest
+    container:
+      image: windelbouwman/virtualcan-build-env:latest
     steps:
       - uses: actions/checkout@v4
       - name: Build python code
