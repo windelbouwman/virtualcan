@@ -1,17 +1,19 @@
-import logging
+"""Async TCP client."""
+
 import asyncio
 from .connection import Connection
 from ..can_message import CanMessage
 
 
 class TcpClient:
+    """Async TCP client for sending and receiving CAN messages."""
+
     def __init__(self):
         self._connection = None
         self._running = False
         self._rx_queue = asyncio.Queue()
 
-    async def connect(self):
-        hostname, port = "127.0.0.1", 8888
+    async def connect(self, hostname="127.0.0.1", port=8888):
         reader, writer = await asyncio.open_connection(hostname, port)
         self._connection = Connection(reader, writer)
         self._receiver_task = asyncio.create_task(self._recv_task_func())
@@ -22,13 +24,13 @@ class TcpClient:
         self._running = False
         await self._receiver_task
 
-    async def send_message(self, can_message):
-        """ Transmit a CAN message. """
+    async def send_message(self, can_message: CanMessage):
+        """Transmit a CAN message."""
         bindata = can_message.to_bytes()
         await self._connection.send_message(bindata)
 
-    async def recv_message(self):
-        """ Receive a CAN message. """
+    async def recv_message(self) -> CanMessage:
+        """Receive a CAN message."""
         can_message = await self._rx_queue.get()
         self._rx_queue.task_done()
         return can_message

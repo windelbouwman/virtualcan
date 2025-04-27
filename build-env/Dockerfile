@@ -7,3 +7,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends build-essential
 # Install python:
 RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pip python3-pytest
 
+# Install ruff:
+RUN python3 -m pip install --break-system-packages ruff

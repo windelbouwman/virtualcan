@@ -6,8 +6,7 @@ from ..can_message import CanMessage
 
 
 class SyncTcpClient:
-    """ Synchronous implementation.
-    """
+    """Synchronous implementation."""
 
     _FMT = ">I"
 
@@ -42,9 +41,9 @@ class SyncTcpClient:
             self._rx_queue.put(can_message)
 
     def _recv_packet(self):
-        """ Receive a single length prefixed packet. """
+        """Receive a single length prefixed packet."""
         header_data = self._recv_exactly(struct.calcsize(self._FMT))
-        data_len, = struct.unpack(self._FMT, header_data)
+        (data_len,) = struct.unpack(self._FMT, header_data)
         data = self._recv_exactly(data_len)
         return data
 

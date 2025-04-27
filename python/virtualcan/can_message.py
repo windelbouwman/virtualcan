@@ -1,7 +1,6 @@
-""" Can message class.
-"""
+"""Can message class."""
+
 import struct
-import json
 import binascii
 
 
@@ -40,7 +39,7 @@ class CanMessage:
     _CAN_FLAGS_EXTENDED = 1
 
     def to_bytes(self):
-        """ Serialize this can message to some binary format. """
+        """Serialize this can message to some binary format."""
         flags = 0
         if self.extended:
             flags |= self._CAN_FLAGS_EXTENDED
@@ -51,7 +50,7 @@ class CanMessage:
 
     @classmethod
     def from_bytes(cls, bindata):
-        """ Create a can message from some binary data. """
+        """Create a can message from some binary data."""
         can_id, flags, data_len, data = struct.unpack(cls._CAN_FMT, bindata)
         extended = bool(flags & cls._CAN_FLAGS_EXTENDED)
         data = data[:data_len]

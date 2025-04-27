@@ -1,5 +1,4 @@
-""" A connection which can be shared by client and server.
-"""
+"""A connection which can be shared by client and server."""
 
 import logging
 import asyncio
@@ -7,7 +6,7 @@ import struct
 
 
 class Connection:
-    """ Wrapper to send chunks prefixed with a length. """
+    """Wrapper to send chunks prefixed with a length."""
 
     _FMT = ">I"
     logger = logging.getLogger("tcp_chunked_connection")
@@ -17,7 +16,7 @@ class Connection:
         self._writer = writer
 
     async def close(self):
-        """ Close this connection. """
+        """Close this connection."""
         self._writer.close()
         await self._writer.wait_closed()
 
@@ -31,7 +30,7 @@ class Connection:
 
     async def recv_packet(self):
         header_data = await self._reader.readexactly(struct.calcsize(self._FMT))
-        data_len, = struct.unpack(self._FMT, header_data)
+        (data_len,) = struct.unpack(self._FMT, header_data)
         # self.logger.debug(f"Receiving {data_len} bytes")
         data = await self._reader.readexactly(data_len)
         return data

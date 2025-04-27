@@ -1,4 +1,4 @@
-""" This a plugin for the python-can package.
+"""This a plugin for the python-can package.
 
 After installation, you can use the virtualcan driver:
 
@@ -7,7 +7,6 @@ After installation, you can use the virtualcan driver:
     >>> bus.send(can.Message(data=[1, 2, 3, 4, 5]))
 
 """
-
 
 import logging
 import time
@@ -19,8 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class VirtualCanBus(BusABC):
-    """ virtualcan interface
-    """
+    """virtualcan interface"""
 
     def __init__(self, channel=None, **kwargs):
         super().__init__(channel=channel, **kwargs)

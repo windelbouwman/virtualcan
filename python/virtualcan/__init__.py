@@ -1,4 +1,4 @@
-""" Virtual CAN bus utilities.
+"""Virtual CAN bus utilities.
 
 There are several options to use this software.
 

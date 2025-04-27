@@ -1,4 +1,4 @@
-""" This example connects two can interface to each other.
+"""This example connects two can interface to each other.
 
 This can be handy for several use cases:
 - Connect hardware can to virtual can
@@ -16,8 +16,10 @@ import threading
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('can0', help='can interface, for example virtualcan:localhost:18881')
-    parser.add_argument('can1', help='other can interface, see can0')
+    parser.add_argument(
+        "can0", help="can interface, for example virtualcan:localhost:18881"
+    )
+    parser.add_argument("can1", help="other can interface, see can0")
 
     args = parser.parse_args()
 
@@ -39,13 +41,13 @@ def main():
     t4 = threading.Thread(target=send_func, args=(bus1, queue0_to_1), daemon=True)
     t4.start()
 
-    print('4 threads are go!')
+    print("4 threads are go!")
 
     input("Press enter to stop this!")
 
 
 def create_bus(txt):
-    interface, channel = txt.split(':', 1)
+    interface, channel = txt.split(":", 1)
     bus0 = can.Bus(interface=interface, channel=channel)
     return bus0
 

@@ -1,2 +1,1 @@
-""" Command line interface commands.
-"""
+"""Command line interface commands."""

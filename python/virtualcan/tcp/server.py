@@ -4,8 +4,7 @@ from .connection import Connection
 
 
 class TcpServer:
-    """ Central TCP server for CAN messages!
-    """
+    """Central TCP server for CAN messages!"""
 
     logger = logging.getLogger("tcp-server")
 
@@ -24,8 +23,7 @@ class TcpServer:
             await server.serve_forever()
 
     async def _broadcast_tx_task_func(self):
-        """ Take CAN messages from a broadcast queue and send them to all peers.
-        """
+        """Take CAN messages from a broadcast queue and send them to all peers."""
         while True:
             pkt = await self._broadcast_tx_queue.get()
             for remote in self._peers:
@@ -49,8 +47,7 @@ class TcpServer:
 
 
 class Peer:
-    """ A single connected client!
-    """
+    """A single connected client!"""
 
     def __init__(self, connection):
         self._connection = connection
@@ -58,11 +55,11 @@ class Peer:
         self._tx_counter = 0
 
     def start(self):
-        """ Start tx processing of this peer! """
+        """Start tx processing of this peer!"""
         self._tx_task = asyncio.create_task(self._tx_task_func())
 
     async def send_message(self, packet):
-        """ Schedule a packet for transmission! """
+        """Schedule a packet for transmission!"""
         await self._tx_queue.put(packet)
 
     async def _tx_task_func(self):

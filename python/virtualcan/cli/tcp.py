@@ -1,5 +1,4 @@
-""" Command line utils
-"""
+"""Command line utils"""
 
 import argparse
 import logging
@@ -11,7 +10,7 @@ from ..tcp import TcpClient, TcpServer
 
 
 def tcp_can_server():
-    """ Setup a virtual can server over TCP/IP """
+    """Setup a virtual can server over TCP/IP"""
     server = TcpServer()
     asyncio.run(server.run())
 
