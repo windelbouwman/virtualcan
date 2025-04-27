@@ -8,8 +8,8 @@ edition = "2018"
 
 [dependencies]
 
-bytes = "0.5"
-clap = "2"
+bytes = "1"
+clap = "3"
 log = "0.4"
 simple_logger = "1"
 scroll = "0.10"

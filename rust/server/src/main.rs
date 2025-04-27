@@ -12,7 +12,7 @@ fn main() {
         .arg(
             clap::Arg::with_name("port")
                 .long("port")
-                .short("port")
+                .short('p')
                 .takes_value(true)
                 .default_value("18881"),
         )

@@ -1,14 +1,12 @@
 use bytes::Bytes;
 use futures::channel::mpsc;
 use futures::{SinkExt, StreamExt};
-use tokio::net::{TcpListener, TcpStream};
+use std::collections::HashMap;
 use tokio_util::codec::{FramedRead, FramedWrite, LengthDelimitedCodec};
 
 pub fn run_server(port: u16) {
-    let mut runtime = tokio::runtime::Builder::new()
-        .basic_scheduler()
+    let runtime = tokio::runtime::Builder::new_current_thread()
         .enable_all()
-        .thread_name("Tokio-server-thread")
         .build()
         .unwrap();
 
@@ -20,21 +18,35 @@ pub fn run_server(port: u16) {
 }
 
 struct Server {
-    peers: Vec<Peer>,
+    peers: HashMap<u32, Peer>,
 }
 
 impl Server {
     fn new() -> Server {
-        Server { peers: vec![] }
+        Server {
+            peers: HashMap::new(),
+        }
     }
 
-    fn add_peer(&mut self, peer: Peer) {
-        self.peers.push(peer);
+    fn handle_event(&mut self, event: ServerEvent) {
+        match event {
+            ServerEvent::Message { source_port, msg } => {
+                self.broadcast(source_port, msg);
+            }
+            ServerEvent::AddPeer(peer) => {
+                self.peers.insert(peer.port_id, peer);
+            }
+            ServerEvent::RemovePeer(id) => {
+                self.peers.remove(&id);
+            }
+        }
     }
 
     fn broadcast(&mut self, source_port: u32, msg: Bytes) {
-        for peer in &mut self.peers {
-            peer.send_out(source_port, msg.clone());
+        for peer in &mut self.peers.values_mut() {
+            if let Err(_err) = peer.send_out(source_port, msg.clone()) {
+                info!("Peer disconnect");
+            }
         }
     }
 }
@@ -47,17 +59,22 @@ struct Peer {
 }
 
 impl Peer {
-    fn send_out(&mut self, source_port: u32, msg: Bytes) {
+    fn send_out(&mut self, source_port: u32, msg: Bytes) -> Result<(), ()> {
         trace!("Peer sendout msg {:?}", msg);
         if source_port != self.port_id {
-            self.tx.unbounded_send(msg);
+            if let Err(_err) = self.tx.unbounded_send(msg) {
+                return Err(());
+            }
         }
+
+        Ok(())
     }
 }
 
 enum ServerEvent {
     Message { source_port: u32, msg: Bytes },
-    Peer(Peer),
+    AddPeer(Peer),
+    RemovePeer(u32),
 }
 
 async fn server_prog(port: u16) -> std::io::Result<()> {
@@ -67,16 +84,14 @@ async fn server_prog(port: u16) -> std::io::Result<()> {
     let addr = std::net::SocketAddrV4::new(ip, port);
     info!("Starting virtual can server at: {:?}", addr);
     let std_listener = std::net::TcpListener::bind(addr)?;
-    let mut listener = TcpListener::from_std(std_listener)?;
+    std_listener.set_nonblocking(true)?;
+    let listener = tokio::net::TcpListener::from_std(std_listener)?;
     info!("Bound to {:?}", addr);
 
     let (broadcast_tx, distributor_rx) = mpsc::unbounded::<ServerEvent>();
 
     let _distributor_task_handle = tokio::spawn(async {
-        let result = distributor_prog(distributor_rx).await;
-        if let Err(err) = result {
-            error!("Error in distribution task: {:?}", err);
-        }
+        distributor_prog(distributor_rx).await;
     });
 
     let mut peer_counter: u32 = 0;
@@ -91,38 +106,32 @@ async fn server_prog(port: u16) -> std::io::Result<()> {
     }
 }
 
-async fn distributor_prog(mut rx: mpsc::UnboundedReceiver<ServerEvent>) -> std::io::Result<()> {
+async fn distributor_prog(mut rx: mpsc::UnboundedReceiver<ServerEvent>) {
     let mut server = Server::new();
-    while let Some(item) = rx.next().await {
-        match item {
-            ServerEvent::Message { source_port, msg } => {
-                server.broadcast(source_port, msg);
-            }
-            ServerEvent::Peer(peer) => {
-                server.add_peer(peer);
-            }
-        }
+    while let Some(event) = rx.next().await {
+        server.handle_event(event);
     }
-
-    Ok(())
 }
 
 fn process_socket(
-    broadcast_tx: mpsc::UnboundedSender<ServerEvent>,
-    stream: TcpStream,
+    server_cmds: mpsc::UnboundedSender<ServerEvent>,
+    stream: tokio::net::TcpStream,
     peer_id: u32,
 ) {
     let _peer_task_handle = tokio::spawn(async move {
-        let result = peer_prog(stream, broadcast_tx, peer_id).await;
+        let result = peer_prog(stream, server_cmds.clone(), peer_id).await;
         if let Err(err) = result {
             error!("Error in peer task: {:?}", err);
         }
+        server_cmds
+            .unbounded_send(ServerEvent::RemovePeer(peer_id))
+            .unwrap();
     });
 }
 
 async fn peer_prog(
-    mut stream: TcpStream,
-    broadcast_tx: mpsc::UnboundedSender<ServerEvent>,
+    mut stream: tokio::net::TcpStream,
+    server_cmds: mpsc::UnboundedSender<ServerEvent>,
     peer_id: u32,
 ) -> std::io::Result<()> {
     // Create outbound channel:
@@ -132,9 +141,7 @@ async fn peer_prog(
         tx: emit_tx,
         port_id: peer_id,
     };
-    broadcast_tx
-        .unbounded_send(ServerEvent::Peer(peer))
-        .unwrap();
+    server_cmds.unbounded_send(ServerEvent::AddPeer(peer)).unwrap();
 
     stream.set_nodelay(true)?;
     let (tcp_read, tcp_write) = stream.split();
@@ -149,7 +156,7 @@ async fn peer_prog(
                 if let Some(packet) = optional_packet {
                     let item = packet?.freeze();
                     trace!("Item! {:?}", item);
-                    broadcast_tx
+                    server_cmds
                     .unbounded_send(ServerEvent::Message { source_port: peer_id, msg: item } )
                     .unwrap();
                 } else {
@@ -160,7 +167,7 @@ async fn peer_prog(
             optional_item = emit_rx.next() => {
                 if let Some(item) = optional_item {
                     trace!("BROADCAST: {:?}", item);
-                    packet_sink.send(item).await;
+                    packet_sink.send(item).await.expect("Send should work");
                 } else {
                     info!("No messages to broadcast.");
                     break;

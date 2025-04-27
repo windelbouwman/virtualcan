@@ -1,5 +1,5 @@
 
-[![Build Status](https://travis-ci.org/windelbouwman/virtualcan.svg?branch=master)](https://travis-ci.org/windelbouwman/virtualcan)
+[![.github/workflows/ci.yaml](https://github.com/windelbouwman/virtualcan/actions/workflows/ci.yaml/badge.svg)](https://github.com/windelbouwman/virtualcan/actions/workflows/ci.yaml)
 
 # Virtual CAN bus
 

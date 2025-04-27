@@ -14,7 +14,7 @@ fn main() {
         .about("Bridge virtual to real CAN bus")
         .arg(
             clap::Arg::with_name("v")
-                .short("v")
+                .short('v')
                 .multiple(true)
                 .help("Sets the level of verbosity."),
         )
@@ -28,7 +28,7 @@ fn main() {
         .arg(
             clap::Arg::with_name("port")
                 .long("port")
-                .short("p")
+                .short('p')
                 .takes_value(true)
                 .help("Specify virtual can server port to connect to.")
                 .default_value("18881"),
