@@ -2,13 +2,13 @@
 #include "unix_connection.h"
 #include "logging.h"
 
+#include <netdb.h>
 #include <netinet/in.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>
 #include <string.h>
-#include <netdb.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 namespace virtualcan {
 
@@ -23,7 +23,7 @@ UnixCanConnection::~UnixCanConnection()
 
 int UnixCanConnection::Connect(const char* host, const uint16_t port)
 {
-    struct hostent *server;
+    struct hostent* server;
     struct sockaddr_in serv_addr;
     int result;
 
@@ -36,8 +36,7 @@ int UnixCanConnection::Connect(const char* host, const uint16_t port)
 
     // Lookup hostname:
     server = gethostbyname(host);
-    if (server == NULL)
-    {
+    if (server == NULL) {
         LOG_ERROR("Failed to lookup hostname: %s!", host);
         return -1;
     }
@@ -61,8 +60,7 @@ int UnixCanConnection::tx_data(const uint8_t* buffer, const int len)
 {
     int result;
     result = write(this->socket_fd, buffer, len);
-    if (result < 0)
-    {
+    if (result < 0) {
         LOG_ERROR("Error transmitting data");
         return -1;
     }
@@ -73,8 +71,7 @@ int UnixCanConnection::rx_data(uint8_t* buffer, const int len)
 {
     int result;
     result = read(this->socket_fd, buffer, len);
-    if (result < 0)
-    {
+    if (result < 0) {
         LOG_ERROR("Error receving data");
         return -1;
     }

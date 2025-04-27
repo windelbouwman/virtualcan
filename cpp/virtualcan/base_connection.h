@@ -5,27 +5,25 @@
 #include "can_interface.h"
 #include "frame.h"
 
-namespace virtualcan
-{
+namespace virtualcan {
 
-class BaseCanConnection : public ICanConnection
-{
-	public:
-        virtual ~BaseCanConnection();
+class BaseCanConnection : public ICanConnection {
+public:
+    virtual ~BaseCanConnection();
 
-		virtual void Send(CanMessage*);
-		virtual CanMessage* Recv();
+    virtual void Send(CanMessage*);
+    virtual CanMessage* Recv();
 
-    protected:
-		virtual int tx_data(const uint8_t* buffer, const int len) = 0;
-		virtual int rx_data(uint8_t* buffer, const int len) = 0;
+protected:
+    virtual int tx_data(const uint8_t* buffer, const int len) = 0;
+    virtual int rx_data(uint8_t* buffer, const int len) = 0;
 
-	private:
-		int tx_packet(const Packet* packet);
-		int tx_all_data(uint8_t* buffer, int len);
+private:
+    int tx_packet(const Packet* packet);
+    int tx_all_data(uint8_t* buffer, int len);
 
-		Packet* rx_packet();
-		int rx_socket_exact(uint8_t* buffer, int len);
+    Packet* rx_packet();
+    int rx_socket_exact(uint8_t* buffer, int len);
 };
 
 }

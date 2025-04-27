@@ -3,8 +3,8 @@
  */
 
 #include "winsock2_connection.h"
-#include "util.h"
 #include "logging.h"
+#include "util.h"
 
 #include <stdio.h>
 #include <winsock2.h>
@@ -30,17 +30,17 @@ int WinSock2CanConnection::Connect(const char* host, const uint16_t port)
     int iResult;
 
     // Initialize Winsock
-    iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+    iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (iResult != 0) {
         printf("WSAStartup failed: %d\n", iResult);
         return 1;
     }
 
     struct addrinfo *result = NULL,
-                *ptr = NULL,
-                hints;
+                    *ptr = NULL,
+                    hints;
 
-    ZeroMemory( &hints, sizeof(hints) );
+    ZeroMemory(&hints, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
@@ -59,7 +59,7 @@ int WinSock2CanConnection::Connect(const char* host, const uint16_t port)
     ptr = result;
 
     // Create a SOCKET for connecting to server
-    this->ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype, 
+    this->ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype,
         ptr->ai_protocol);
 
     if (ConnectSocket == INVALID_SOCKET) {
@@ -72,7 +72,7 @@ int WinSock2CanConnection::Connect(const char* host, const uint16_t port)
     printf("Socket created!\n");
 
     // Connect to server.
-    iResult = connect( ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
+    iResult = connect(ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
     if (iResult == SOCKET_ERROR) {
         LOG_ERROR("Cannot connect!");
         closesocket(ConnectSocket);
@@ -108,16 +108,14 @@ int WinSock2CanConnection::tx_data(const uint8_t* buffer, const int len)
     int iResult;
 
     // Check for closed socket.
-    if (this->ConnectSocket == INVALID_SOCKET)
-    {
+    if (this->ConnectSocket == INVALID_SOCKET) {
         LOG_ERROR("Cannot transmit on closed socket!");
         return -1;
     }
 
     // Send an initial buffer
     iResult = send(this->ConnectSocket, (const char*)buffer, len, 0);
-    if (iResult == SOCKET_ERROR)
-    {
+    if (iResult == SOCKET_ERROR) {
         LOG_ERROR("send failed: %d", WSAGetLastError());
         closesocket(this->ConnectSocket);
         WSACleanup();
@@ -136,26 +134,20 @@ int WinSock2CanConnection::rx_data(uint8_t* buffer, const int len)
 
     LOG_TRACE("Trying to receive some data");
 
-    if (this->ConnectSocket == INVALID_SOCKET)
-    {
+    if (this->ConnectSocket == INVALID_SOCKET) {
         LOG_ERROR("Cannot receive on closed socket!");
         return -1;
     }
 
     iResult = recv(this->ConnectSocket, (char*)buffer, len, 0);
 
-    if (iResult > 0)
-    {
+    if (iResult > 0) {
         LOG_TRACE("Bytes received: %d", iResult);
         return iResult;
-    }
-    else if (iResult == 0)
-    {
+    } else if (iResult == 0) {
         LOG_ERROR("Connection closed");
         return -1;
-    }
-    else
-    {
+    } else {
         LOG_ERROR("recv failed: %d", WSAGetLastError());
         return -1;
     }

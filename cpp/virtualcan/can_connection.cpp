@@ -11,13 +11,13 @@ namespace virtualcan {
 
 ICanConnection* open_connection(const char* host, const uint16_t port)
 {
-    #ifdef WIN32
+#ifdef WIN32
     // try winsock2 connection
     WinSock2CanConnection* can_connection = new WinSock2CanConnection();
-    #else
+#else
     // try unix socket.
     UnixCanConnection* can_connection = new UnixCanConnection();
-    #endif
+#endif
     can_connection->Connect(host, port);
 
     return can_connection;

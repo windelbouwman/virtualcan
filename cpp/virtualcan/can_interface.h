@@ -6,11 +6,10 @@
 
 namespace virtualcan {
 
-class ICanConnection
-{
-	public:
-		virtual void Send(CanMessage*) = 0;
-		virtual CanMessage* Recv() = 0;
+class ICanConnection {
+public:
+    virtual void Send(CanMessage*) = 0;
+    virtual CanMessage* Recv() = 0;
 };
 
 }

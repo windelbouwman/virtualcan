@@ -1,6 +1,7 @@
 {
     "recommendations": [
         "charliermarsh.ruff",
-        "editorconfig.editorconfig"
+        "editorconfig.editorconfig",
+        "llvm-vs-code-extensions.vscode-clangd"
     ]
 }

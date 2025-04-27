@@ -1,7 +1,7 @@
 
-#include <gtest/gtest.h>
-#include "util.h"
 #include "can_message.h"
+#include "util.h"
+#include <gtest/gtest.h>
 
 using namespace virtualcan;
 
@@ -34,4 +34,3 @@ TEST(VirtualCanTest, TestCanPacking)
 
     delete msg2;
 }
-

@@ -2,7 +2,11 @@
 
 set -eu
 
-pushd python
+SCRIPT_PATH=$(realpath "$0")
+PYTHON_FOLDER=$(dirname "${SCRIPT_PATH}")
+echo "python folder: ${PYTHON_FOLDER}"
+
+pushd ${PYTHON_FOLDER}
 
 export PYTHONPATH=`pwd`
 pytest -v .

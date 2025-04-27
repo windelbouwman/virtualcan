@@ -8,17 +8,17 @@
 namespace virtualcan {
 
 class UnixCanConnection : public BaseCanConnection {
-    public:
-        UnixCanConnection();
-        virtual ~UnixCanConnection();
-        int Connect(const char* host, const uint16_t port);
+public:
+    UnixCanConnection();
+    virtual ~UnixCanConnection();
+    int Connect(const char* host, const uint16_t port);
 
-    protected:
-		virtual int tx_data(const uint8_t* buffer, const int len);
-		virtual int rx_data(uint8_t* buffer, const int len);
+protected:
+    virtual int tx_data(const uint8_t* buffer, const int len);
+    virtual int rx_data(uint8_t* buffer, const int len);
 
-    private:
-        int socket_fd;
+private:
+    int socket_fd;
 };
 
 }

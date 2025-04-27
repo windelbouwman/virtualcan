@@ -5,7 +5,8 @@
 namespace virtualcan {
 
 // Destructor will free the associated data
-Packet::~Packet() {
+Packet::~Packet()
+{
     free(this->data);
 }
 
