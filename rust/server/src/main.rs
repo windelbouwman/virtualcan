@@ -1,30 +1,29 @@
 #[macro_use]
 extern crate log;
 
+use std::str::FromStr;
 mod server;
 
 fn main() {
     simple_logger::init_with_level(log::Level::Info).unwrap();
 
-    let matches = clap::App::new("virtual can server")
+    let matches = clap::Command::new("virtual can server")
         .author("Windel Bouwman")
         .about("Central virtual CAN server")
         .arg(
-            clap::Arg::with_name("port")
+            clap::Arg::new("port")
                 .long("port")
                 .short('p')
-                .takes_value(true)
                 .default_value("18881"),
         )
         .get_matches();
 
-    use std::str::FromStr;
     let port: u16 = u16::from_str(
         matches
-            .value_of("port")
+            .get_one::<String>("port")
             .expect("port value must be present"),
     )
-    .unwrap_or(18881);
+    .unwrap();
 
     server::run_server(port);
 }

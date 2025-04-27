@@ -1,6 +1,5 @@
 """Command line utils"""
 
-import argparse
 import logging
 import time
 import asyncio

@@ -141,7 +141,9 @@ async fn peer_prog(
         tx: emit_tx,
         port_id: peer_id,
     };
-    server_cmds.unbounded_send(ServerEvent::AddPeer(peer)).unwrap();
+    server_cmds
+        .unbounded_send(ServerEvent::AddPeer(peer))
+        .unwrap();
 
     stream.set_nodelay(true)?;
     let (tcp_read, tcp_write) = stream.split();

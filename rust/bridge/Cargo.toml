@@ -9,9 +9,9 @@ edition = "2018"
 [dependencies]
 
 bytes = "1"
-clap = "3"
+clap = "4"
 log = "0.4"
-simple_logger = "1"
+simple_logger = "5"
 scroll = "0.10"
 
 [target.'cfg(target_os = "linux")'.dependencies]

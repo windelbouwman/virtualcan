@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate log;
 
+use std::str::FromStr;
+
 mod can_frame;
 mod client;
 mod tcp_endpoint;
@@ -9,45 +11,42 @@ mod tcp_endpoint;
 mod socket_can_endpoint;
 
 fn main() {
-    let matches = clap::App::new("virtual can bridge")
+    let matches = clap::Command::new("virtual can bridge")
         .author("Windel Bouwman")
         .about("Bridge virtual to real CAN bus")
         .arg(
-            clap::Arg::with_name("v")
+            clap::Arg::new("v")
                 .short('v')
-                .multiple(true)
+                .long("verbose")
+                .action(clap::ArgAction::Count)
                 .help("Sets the level of verbosity."),
         )
         .arg(
-            clap::Arg::with_name("host")
+            clap::Arg::new("host")
                 .long("host")
-                .takes_value(true)
                 .help("Specify virtual can server IP to connect to.")
                 .default_value("127.0.0.1"),
         )
         .arg(
-            clap::Arg::with_name("port")
+            clap::Arg::new("port")
                 .long("port")
                 .short('p')
-                .takes_value(true)
                 .help("Specify virtual can server port to connect to.")
                 .default_value("18881"),
         )
         .arg(
-            clap::Arg::with_name("candevice")
+            clap::Arg::new("candevice")
                 .long("can")
-                .takes_value(true)
                 .help("Specify can port to connect to, for example can0"),
         )
         .arg(
-            clap::Arg::with_name("peer-port")
+            clap::Arg::new("peer-port")
                 .long("peer-port")
-                .takes_value(true)
                 .help("Specify second virtual can server port to connect to."),
         )
         .get_matches();
 
-    let verbosity = matches.occurrences_of("v");
+    let verbosity = matches.get_count("v");
 
     let log_level = match verbosity {
         0 => log::Level::Info,
@@ -57,26 +56,25 @@ fn main() {
 
     simple_logger::init_with_level(log_level).unwrap();
 
-    let host = matches.value_of("host").expect("to be present");
+    let host = matches.get_one::<String>("host").expect("to be present");
 
-    use std::str::FromStr;
     let port: u16 = u16::from_str(
         matches
-            .value_of("port")
+            .get_one::<String>("port")
             .expect("port value must be present"),
     )
     .unwrap_or(18881);
 
-    if matches.is_present("candevice") {
-        let can_device = matches.value_of("candevice").unwrap();
+    if matches.contains_id("candevice") {
+        let can_device = matches.get_one::<String>("candevice").unwrap();
         info!("Bridging to real can device {}!", can_device);
         client::socketcan::bridge_can0(host, port, can_device);
-    } else if matches.is_present("peer-port") {
+    } else if matches.contains_id("peer-port") {
         info!("Bridging to other virtual can server!");
 
         let peer_port: u16 = u16::from_str(
             matches
-                .value_of("peer-port")
+                .get_one::<String>("peer-port")
                 .expect("port value must be present"),
         )
         .unwrap_or(18882);

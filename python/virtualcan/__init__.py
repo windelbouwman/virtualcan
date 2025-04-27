@@ -8,3 +8,6 @@ There are several options to use this software.
 """
 
 from .can_message import CanMessage
+
+
+__all__ = ["CanMessage"]
